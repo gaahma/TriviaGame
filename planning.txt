@@ -1,0 +1,54 @@
+Objective: to make a "Who Wants to be a Millionaire" style trivia game.
+
+Needs:
+
+a separate file containing all questions, answers, and wrong answers*
+
+a game object that contains and applies the rules of the game
+	win counter*
+	loss counter*
+	a timer object
+	question object*
+		question
+		correct answer
+		fake answers
+	array of question objects*
+
+	function reset()
+		starts the whole game over
+
+
+a set of click listeners
+
+an html layout using bootstrap
+
+css styling
+	start with rounded buttons, then make it more accurate to the show if there's time
+
+
+flowchart
+-----------
+page loads
+
+game.init runs
+
+next question in questionList gets "put into play"
+	question and answers get pushed to html
+	a 30 sec timer starts
+		if(button click){
+			compare user answer to actual answer
+				if (correct)
+					correctCounter++
+				else 
+					incorrectCounter++
+			nextQuestion() 
+		}
+
+		if(timer = 0){
+			incorrectCounter++
+			nextQuestion()
+		}
+
+
+
+
