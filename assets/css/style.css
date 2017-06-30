@@ -1,0 +1,36 @@
+body {
+    background-color: #222;
+    color: #ccc;
+}
+
+.jumbotron {
+    background-color: #222;
+}
+
+.answer {
+	content: "";
+	cursor: pointer;
+	font-size: medium;
+    width: 100%;
+    color: white;
+    padding: 1%;
+    text-align: center;
+    margin-bottom: 2%;
+    border: .75rem solid blue;
+        -moz-border-radius:  0rem 7rem 0rem 7rem;
+         	 border-radius: 0rem 7rem 0rem 7rem;
+}
+
+#question {
+    font-size: x-large;
+    color: white;
+    height: 25%;
+    padding: 15%;
+    border: 0.5rem solid white;
+    margin-bottom: 5%;
+}
+
+#timer {
+    text-align: center;
+    font-size: xx-large;
+}

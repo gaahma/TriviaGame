@@ -1,24 +1,37 @@
 var game = {
-	currentQuestion: undefined,
 
+/*
+	initialize the game by creating game variables, and creating a array of 
+	question objects, randomizing the order of that array, then running
+	the game.
+*/
 	init: function(){
 		this.correct = 0;
 		this.incorrect = 0;
 		this.questionList = [];
 		this.unanswered = 0;
+		this.currentQuestion = undefined;
+		this.answered = false;
 		for (var i = 0; i < QandAs.length; i++){
-			game.questionList.push(game.question(QandAs[i][0],QandAs[i][1],
-												 QandAs[i][2],QandAs[i][3],
+			game.questionList.push(game.question(QandAs[i][0],
+												 QandAs[i][1],
+												 QandAs[i][2],
+												 QandAs[i][3],
 												 QandAs[i][4]));
 		}
 		this.scramble(this.questionList);
 		game.run();
 	},
+/*
+	First check if there is a question object still in questionList.
+	If not, the game is over
 
+	Otherwise, load and display the next question, and begin the timer
+*/
 	run: function(){
+		game.resetButtons();
 		if(game.questionList.length === 0){
-			game.displayScore();
-			game.endGame();
+			game.displayFinalScore();
 			return;
 		}
 		game.nextQuestion();
@@ -26,11 +39,13 @@ var game = {
 		game.timer.tick();
 		
 	},
-
+/*
+	runs a function after a delay.
+*/
 	runAfterTimeout: function(){
 		setTimeout(function(){
-			game.run();
-		}, 2500);
+			game.run()
+		}, 3000);
 	},
 
 	timer: {
@@ -47,8 +62,9 @@ var game = {
 				$("#timer").html(time);
 				if(time === 0){
 					game.timer.clear();
+					game.answered = true;
 					game.unanswered++;
-					game.displayCorrectAnswer();
+					game.showCorrectAnswer();
 					game.runAfterTimeout();
 				}
 			}, 1000);
@@ -72,33 +88,92 @@ var game = {
 		game.scramble(question.mixedAnswers);
 		return question;
 	},
-
+/*
+	Destructively loads the next question from questionList
+*/
 	nextQuestion: function(){
-		game.currentQuestion = game.questionList.splice(0,1)[0];	
+		game.currentQuestion = game.questionList.pop();	
 	},
 
 	displayQuestion: function(){
 		$("#question").html(this.currentQuestion.question);
-		var answers = $("#answers").children()
-		for(var i = 0; i < answers.length; i++){
-			answers.eq(i).text(game.currentQuestion.mixedAnswers[i]);
-		}	
+		var answers = $("#answers").children();
+		for(var i = 0; i < 4; i++){
+			if(i < 2){
+				answers
+				.eq(0)
+				.children()
+				.eq(i)
+				.text(game.currentQuestion.mixedAnswers[i]);
+			} else {
+				answers
+				.eq(1)
+				.children()
+				.eq(i-2)
+				.text(game.currentQuestion.mixedAnswers[i]);
+			}
+
+		}
 	},
 
-	displayScore: function(){
+	displayFinalScore: function(){
 		$("#timer").empty();
 		$("#correct").html("Correct: " + game.correct);
 		$("#incorrect").html("Incorrect: " + game.incorrect);
 		$("#unanswered").html("Unanswered: " + game.unanswered);
-	},
-
-	displayCorrectAnswer: function(){
-		$("#question").html("The correct answer was " + game.currentQuestion.answer);
-	},
-
-	endGame: function(){
 		$("#playAgain").append("<button id='replay'>Play Again?</button>");
 	},
+
+	displayCorrectAnswer: function(correctness){
+		$("#question").html(correctness + '!! The answer was "' + game.currentQuestion.answer + '"');
+	},
+
+	flashRed: function(button){
+		if (game.answered)
+			return;
+		answered = true;		
+		button.stop()
+		.animate({"border-color": "#222"}, 150)
+		.animate({"border-color": "red"}, 150)
+		.animate({"border-color": "#222"}, 150)
+		.animate({"border-color": "red"}, 150)
+		.animate({"border-color": "#222"}, 150)
+		.animate({"border-color": "red"}, 150)
+		.animate({"border-color": "#222"}, 150)
+		.animate({"border-color": "red"}, 150);
+	},
+
+	flashGreen: function(button){
+		answered = true;
+		button.stop()
+		.animate({"border-color": "#29ff00"}, 1500);
+	},
+
+	resetButtons: function(){
+		
+		$(".answer").each(function(){	
+			$(this).stop().animate({
+				"border-color": "blue",
+				opacity: 1 	
+			}, "fast");
+			});
+		game.answered = false;
+	},
+
+	showCorrectAnswer: function(){
+		$(".answer").each(function(){
+			if($(this).html() === game.currentQuestion.answer){
+				game.flashGreen($(this));
+			} else {
+				$(this).animate({
+					opacity: 0,
+				}, "slow");
+			}
+		})
+	},
+
+
+
 /*
 	There are two instances in this project where I need an array scrambled.
 	This function does it nicely, apparently called the Durstenfeld shuffle.
@@ -114,22 +189,32 @@ var game = {
 	}
 }
 
+
+
 $(document).ready(function(){
-	$("#question").html("<button id='replay'>Start</button>");
+	$("#question").html("<div class='answer' id='replay'>Start</div>");
 
 	$(".answer").on("click", function(){
-		if(!game.timer.isTicking)
-			return;
-		game.timer.clear();
-		if($(this).html() === game.currentQuestion.answer){
-			game.correct++;
-		} else {
-			game.incorrect++;
-		}
-		game.displayCorrectAnswer();
-		game.runAfterTimeout();
-	});
+		if(!game.timer.isTicking)	//if game.timer is not ticking
+			return;						//ignore answer clicks
 
+		game.timer.clear();									//otherwise stop the timer
+		var correctness;							
+		if($(this).html() === game.currentQuestion.answer){	//compare user answer to the correct answer
+			game.correct++;									//if right, incrememt correct
+			game.flashGreen($(this));
+			game.showCorrectAnswer();		
+		} else {
+			game.incorrect++;								//else increment incorrect
+			game.flashRed($(this));
+			game.showCorrectAnswer();
+		}
+		game.answered = true;
+		game.runAfterTimeout();								//call game.run() after a delay
+	});
+/*
+	
+*/
 	$(document).on("click", "#replay", function(){
 		$("#playAgain").empty();
 		$("#correct").empty();
@@ -138,4 +223,17 @@ $(document).ready(function(){
 
 		game.init();
 	});
+
+	function on(){
+		if(!game.answered)
+			$(this).stop().animate({"border-color": "white"}, "slow");
+	}
+
+	function off(){
+		if(!game.answered)
+			$(this).stop().animate({"border-color": "blue"}, "slow");
+	}
+
+
+	$(".answer").hover(on, off);
 });

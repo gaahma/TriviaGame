@@ -32,7 +32,7 @@ page loads
 
 game.init runs
 
-next question in questionList gets "put into play"
+nextQuestion() gets called
 	question and answers get pushed to html
 	a 30 sec timer starts
 		if(button click){
