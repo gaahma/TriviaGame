@@ -110,12 +110,14 @@ var game = {
 				.eq(0)
 				.children()
 				.eq(i)
+				.attr("answer", game.currentQuestion.mixedAnswers[i])
 				.text(game.currentQuestion.mixedAnswers[i]);
 			} else {
 				answers
 				.eq(1)
 				.children()
 				.eq(i-2)
+				.attr("answer", game.currentQuestion.mixedAnswers[i])
 				.text(game.currentQuestion.mixedAnswers[i]);
 			}
 		}
@@ -158,10 +160,6 @@ var game = {
 		.animate({"border-color": "#222"}, 125)
 		.animate({"border-color": "red"}, 125);
 	},
-
-	flashGreen: function(button){
-		button.stop().animate({"border-color": "#29ff00"}, 1500);
-	},
 /*
 	I kept encountering bugs getting all the answer buttons to properly reset.
 	Sometimes the mouseenter/mouseleave events would cause them to stay 
@@ -181,7 +179,7 @@ var game = {
 */
 	showCorrectAnswer: function(){
 		$(".answer").each(function(){
-			if($(this).html() === game.currentQuestion.answer){
+			if($(this).attr("answer") === game.currentQuestion.answer){
 				game.flashGreen($(this));
 			} else {
 				$(this).stop().animate({
@@ -189,6 +187,10 @@ var game = {
 				}, "slow");
 			}
 		});
+	},
+
+	flashGreen: function(button){
+		button.stop().animate({"border-color": "#29ff00"}, 1500);
 	},
 
 /*
@@ -237,16 +239,15 @@ $(document).ready(function(){
 		if(!game.timer.isTicking)	//if game.timer is not ticking
 			return;						//ignore answer clicks
 
-		game.timer.clear();									//otherwise stop the timer							
-		if($(this).html() === game.currentQuestion.answer){	//compare user answer to the correct answer
-			game.correct++;									//if right, incrememt correct
-			game.showCorrectAnswer();	
-			$("#timer").stop().css({"color":"white"});	
+		game.timer.clear();											//otherwise stop the timer							
+		if($(this).attr("answer") === game.currentQuestion.answer){	//compare user answer to the correct answer
+			game.correct++;											//if right, incrememt correct								
+			$("#timer").stop().css({"color":"white"});				//change timer back to white
 		} else {
 			game.incorrect++;								//else increment incorrect
-			game.flashRed($(this));
-			game.showCorrectAnswer();
+			game.flashRed($(this));							//flash the button red						
 		}
+		game.showCorrectAnswer();							//green highlight correct answer
 		game.answered = true;
 		game.runAfterTimeout();								//call game.run() after a delay
 	});
