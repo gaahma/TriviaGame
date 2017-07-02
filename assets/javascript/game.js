@@ -1,5 +1,4 @@
 var game = {
-
 /*
 	initialize the game by creating game variables, and creating a array of 
 	question objects, randomizing the order of that array, then running
@@ -8,8 +7,8 @@ var game = {
 	init: function(){
 		this.correct = 0;
 		this.incorrect = 0;
-		this.questionList = [];
 		this.unanswered = 0;
+		this.questionList = [];
 		this.currentQuestion = undefined;
 		this.answered = false;
 		for (var i = 0; i < QandAs.length; i++){
@@ -20,6 +19,7 @@ var game = {
 												 QandAs[i][4]));
 		}
 		this.scramble(this.questionList);
+		game.hideButtons(false);
 		game.run();
 	},
 /*
@@ -30,17 +30,19 @@ var game = {
 */
 	run: function(){
 		game.resetButtons();
+		game.answered = false;
 		if(game.questionList.length === 0){
 			game.displayFinalScore();
+			game.hideButtons(true);
 			return;
 		}
-		game.nextQuestion();
+		game.loadNextQuestion();
 		game.displayQuestion();
+		console.log(this.currentQuestion.answer);
 		game.timer.tick();
-		
 	},
 /*
-	runs a function after a delay.
+	runs game.run() after a delay.
 */
 	runAfterTimeout: function(){
 		setTimeout(function(){
@@ -54,14 +56,18 @@ var game = {
 		isTicking: false,
 
 		tick: function(){
-			var time = game.timer.countdown;
-			game.timer.isTicking = true;
+			var time = this.countdown;
+			this.isTicking = true;
 			$("#timer").html(time);
 			this.intervalId = setInterval(function(){
 				time--;
 				$("#timer").html(time);
+				if(time === 5){
+					$("#timer").animate({"color": "red"}, time*1000);
+				}
 				if(time === 0){
 					game.timer.clear();
+					game.timerFlash();
 					game.answered = true;
 					game.unanswered++;
 					game.showCorrectAnswer();
@@ -91,7 +97,7 @@ var game = {
 /*
 	Destructively loads the next question from questionList
 */
-	nextQuestion: function(){
+	loadNextQuestion: function(){
 		game.currentQuestion = game.questionList.pop();	
 	},
 
@@ -112,68 +118,95 @@ var game = {
 				.eq(i-2)
 				.text(game.currentQuestion.mixedAnswers[i]);
 			}
-
 		}
 	},
 
 	displayFinalScore: function(){
+		$("#question").empty();
+		var finalScore = $("<div>");
+		var correct = $("<p>").text("Correct: " + game.correct);
+		var incorrect = $("<p>").text("Incorrect: " + game.incorrect);
+		var unanswered = $("<p>").text("Unanswered: " + game.unanswered);
+		var playAgain = $("<div>").addClass("answer").attr("id", "play").text("Play Again");
+		finalScore.append(correct, incorrect, unanswered, playAgain);
+		$("#question").append(finalScore);
 		$("#timer").empty();
-		$("#correct").html("Correct: " + game.correct);
-		$("#incorrect").html("Incorrect: " + game.incorrect);
-		$("#unanswered").html("Unanswered: " + game.unanswered);
-		$("#playAgain").append("<button id='replay'>Play Again?</button>");
 	},
-
-	displayCorrectAnswer: function(correctness){
-		$("#question").html(correctness + '!! The answer was "' + game.currentQuestion.answer + '"');
+/*
+	If there's a cleaner way to do this, I couldn't find it.  Loops wouldn't work
+*/
+	timerFlash: function(){
+		$("#timer").stop()
+		.animate({"color": "#222"}, 125)
+		.animate({"color": "red"}, 125)
+		.animate({"color": "#222"}, 125)
+		.animate({"color": "red"}, 125)
+		.animate({"color": "#222"}, 125)
+		.animate({"color": "red"}, 125);
 	},
-
-	flashRed: function(button){
-		if (game.answered)
-			return;
-		answered = true;		
+/*
+	If there's a cleaner way to do this, I couldn't find it.  Loops wouldn't work
+*/
+	flashRed: function(button){	
 		button.stop()
-		.animate({"border-color": "#222"}, 150)
-		.animate({"border-color": "red"}, 150)
-		.animate({"border-color": "#222"}, 150)
-		.animate({"border-color": "red"}, 150)
-		.animate({"border-color": "#222"}, 150)
-		.animate({"border-color": "red"}, 150)
-		.animate({"border-color": "#222"}, 150)
-		.animate({"border-color": "red"}, 150);
+		.animate({"border-color": "#222"}, 125)
+		.animate({"border-color": "red"}, 125)
+		.animate({"border-color": "#222"}, 125)
+		.animate({"border-color": "red"}, 125)
+		.animate({"border-color": "#222"}, 125)
+		.animate({"border-color": "red"}, 125)
+		.animate({"border-color": "#222"}, 125)
+		.animate({"border-color": "red"}, 125);
 	},
 
 	flashGreen: function(button){
-		answered = true;
-		button.stop()
-		.animate({"border-color": "#29ff00"}, 1500);
+		button.stop().animate({"border-color": "#29ff00"}, 1500);
 	},
-
-	resetButtons: function(){
-		
+/*
+	I kept encountering bugs getting all the answer buttons to properly reset.
+	Sometimes the mouseenter/mouseleave events would cause them to stay 
+	totally or partially opacified.  This function solved it
+*/
+	resetButtons: function(){	
 		$(".answer").each(function(){	
-			$(this).stop().animate({
-				"border-color": "blue",
-				opacity: 1 	
-			}, "fast");
+			$(this).css({
+				"opacity": 1,
+				"border-color": "blue"	
 			});
-		game.answered = false;
+		});
+		$("#timer").stop().css({"color":"white"});		
 	},
-
+/*
+	Gives the correct answer a green border, and makes the other answers invisible
+*/
 	showCorrectAnswer: function(){
 		$(".answer").each(function(){
 			if($(this).html() === game.currentQuestion.answer){
 				game.flashGreen($(this));
 			} else {
-				$(this).animate({
+				$(this).stop().animate({
 					opacity: 0,
 				}, "slow");
 			}
-		})
+		});
 	},
 
+/*
+	If passed true, this will hide buttons, 
+	if false, it will make them visible again.
 
-
+	Note: this targets the div that contains the answers, not each individual
+	answer div
+*/
+	hideButtons: function(hide){
+		if(hide){
+			$("#answers").css(
+				{"opacity": 0});
+		} else {
+			$("#answers").css(
+				{"opacity": 1});			
+		}
+	},
 /*
 	There are two instances in this project where I need an array scrambled.
 	This function does it nicely, apparently called the Durstenfeld shuffle.
@@ -192,18 +225,23 @@ var game = {
 
 
 $(document).ready(function(){
-	$("#question").html("<div class='answer' id='replay'>Start</div>");
+	game.hideButtons(true);
+	$("#question").html("<div class='answer' id='play'>Start</div>");
+
+	$(document).on("click", "#play", function(){
+		$("#question").empty();
+		game.init();
+	});
 
 	$(".answer").on("click", function(){
 		if(!game.timer.isTicking)	//if game.timer is not ticking
 			return;						//ignore answer clicks
 
-		game.timer.clear();									//otherwise stop the timer
-		var correctness;							
+		game.timer.clear();									//otherwise stop the timer							
 		if($(this).html() === game.currentQuestion.answer){	//compare user answer to the correct answer
 			game.correct++;									//if right, incrememt correct
-			game.flashGreen($(this));
-			game.showCorrectAnswer();		
+			game.showCorrectAnswer();	
+			$("#timer").stop().css({"color":"white"});	
 		} else {
 			game.incorrect++;								//else increment incorrect
 			game.flashRed($(this));
@@ -213,17 +251,9 @@ $(document).ready(function(){
 		game.runAfterTimeout();								//call game.run() after a delay
 	});
 /*
-	
+	These last few functions handle the color changes when user hovers over
+	an .answer div
 */
-	$(document).on("click", "#replay", function(){
-		$("#playAgain").empty();
-		$("#correct").empty();
-		$("#incorrect").empty();
-		$("#unanswered").empty();
-
-		game.init();
-	});
-
 	function on(){
 		if(!game.answered)
 			$(this).stop().animate({"border-color": "white"}, "slow");
@@ -234,6 +264,6 @@ $(document).ready(function(){
 			$(this).stop().animate({"border-color": "blue"}, "slow");
 	}
 
-
-	$(".answer").hover(on, off);
+	$(document).on("mouseenter", ".answer", on);
+	$(document).on("mouseleave", ".answer", off);
 });
