@@ -27,7 +27,7 @@ var QandAs = [
 ["Which of the following men does not have a chemical element named for him?", 
 	"Isaac Newton", "Albert Einstien",
 	"Niels Bohr", "Enrico Fermi"],
-/*
+
 ["Which of these ships was not one of the three taken over by colonists during the Boston Tea Party?",
 	"William", "Eleanor", "Dartmouth", "Beaver"],
 
@@ -50,5 +50,5 @@ var QandAs = [
 	"His dentist", "Traveling salesman", "His butcher", "Local Sheriff"],
 
 ["Which of these U.S. presidents appeared on the television series Laugh-In?",
-	"Richard Nixon", "Lydon Johnson", "Jimmy Carter", "Gerald Ford"]*/
+	"Richard Nixon", "Lydon Johnson", "Jimmy Carter", "Gerald Ford"]
 ];

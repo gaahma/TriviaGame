@@ -51,7 +51,7 @@ var game = {
 	},
 
 	timer: {
-		countdown: 10,
+		countdown: 45,
 		intervalId: undefined,
 		isTicking: false,
 
